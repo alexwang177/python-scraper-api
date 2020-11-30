@@ -7,12 +7,15 @@ app.get("/", async (req, res) => {
 
   console.log("starting...");
 
+  b64_data = "";
+
   pythonProcess.stdout.on("data", function(data) {
-    console.log("getting data");
-    console.log(data.toString());
+    b64_data += data;
   });
 
-  res.send("done");
+  pythonProcess.stdout.on("close", function(data) {
+    res.send(b64_data);
+  });
 });
 
 const PORT = process.env.PORT || 5000;

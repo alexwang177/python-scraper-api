@@ -23,8 +23,12 @@ img = img.rotate(90)
 img.save("temp_image.jpg")
 
 # Convert image to base 64
-with("temp_image.jpg", "rb") as imageFile:
-    encodedString = base64.b64encode(imageFile.read())
+with open("temp_image.jpg", "rb") as imageFile:
+
+    try:
+        encodedString = base64.b64encode(imageFile.read())
+    except:
+        print("Error encoding string")
 
     # Send base 64 string to parent process
     print(encodedString)
