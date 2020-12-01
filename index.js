@@ -25,6 +25,17 @@ app.get("/", async (req, res) => {
   });
 });
 
+app.get("/scrape", (req, res) => {
+  const { spawn } = require("child_process");
+  const pythonProcess = spawn("python", ["./scrape.py"]);
+
+  pythonProcess.stdout.on("data", function(data) {
+    console.log(data.toString());
+  });
+
+  res.send("scraping...");
+});
+
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
