@@ -14,7 +14,14 @@ app.get("/", async (req, res) => {
   });
 
   pythonProcess.stdout.on("close", function(data) {
-    res.send(b64_data);
+    b64_data = b64_data.substring(2, b64_data.length - 1);
+
+    var img = Buffer.from(b64_data, "base64");
+    res.writeHead(200, {
+      "Content-Type": "image/jpeg",
+      "Content-Length": img.length
+    });
+    res.end(img);
   });
 });
 
