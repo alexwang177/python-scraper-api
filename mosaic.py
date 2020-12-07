@@ -10,7 +10,7 @@ parser = argparse.ArgumentParser(
 parser.add_argument('--target', dest='target', required=True,
                     help="Image to create mosaic from")
 parser.add_argument('--images', dest='images',
-                    required=True, help="Diectory of images")
+                    required=True, help="Directory of images")
 parser.add_argument('--grid', nargs=2, dest='grid',
                     required=True, help="Size of photo mosaic")
 parser.add_argument('--output', dest='output', required=False)
@@ -48,7 +48,7 @@ def split_image(image, size):
 
     for i in range(n):
         for j in range(m):
-            imgs.append(image.crop(i * w, j * h, (i + 1) * w, (j + 1) * h))
+            imgs.append(image.crop((i * w, j * h, (i + 1) * w, (j + 1) * h)))
 
     return imgs
 
@@ -112,3 +112,60 @@ def create_photomosaic(target_image, input_images, grid_size, reuse_images=True)
 
     mosaic_image = create_image_grid(output_images, grid_size)
     return mosaic_image
+
+# -------------------------------------------------------------------
+
+
+target_image = Image.open(args.target)
+
+# Input images
+input_images = get_images(args.images)
+
+# Check for no valid images
+if input_images == []:
+    print(f"No valid images found in {args.images}")
+    exit()
+
+# Shuffle list
+random.shuffle(input_images)
+
+# Size of grid
+grid_size = (int(args.grid[0]), int(args.grid[1]))
+
+# Output
+output_filename = "mosaic.jpeg"
+if args.output:
+    output_filename = args.output
+
+reuse_images = True
+resize_input = True
+
+print("starting mosaic creation")
+
+if not reuse_images:
+    if grid_size[0] * grid_size[1] > len(input_images):
+        print("# of images not enough")
+        exit()
+
+# Resizing input
+if resize_input:
+    print("resizing images...")
+
+    # Compute max w and h of tiles
+    dimensions = (int(target_image.size[0] / grid_size[1]),
+                  int(target_image.size[1] / grid_size[0]))
+
+    print(f"max tile dimensions: {dimensions}")
+
+    # Resize
+    for img in input_images:
+        img.thumbnail(dimensions)
+
+# Create mosaic
+mosaic_image = create_photomosaic(
+    target_image, input_images, grid_size, reuse_images)
+
+# Save mosaic
+mosaic_image.save(output_filename, "jpeg")
+
+print(f"Saved output to {output_filename}")

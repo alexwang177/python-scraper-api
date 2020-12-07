@@ -89,7 +89,7 @@ def persist_image(folder_path: str, url: str):
         print(f"Error - Could not save {url} - {e}")
 
 
-def search_and_download(search_term: str, driver_path: str, target_path="./images", number_images=10):
+def search_and_download(search_term: str, driver_path: str, target_path="./images", number_images=100):
     target_folder = os.path.join(
         target_path, "_".join(search_term.lower().split(" ")))
 
@@ -109,7 +109,7 @@ DRIVER_PATH = "./drivers/chromedriver"
 wd = webdriver.Chrome(executable_path=DRIVER_PATH)
 
 try:
-    search_and_download("Sharks", driver_path=DRIVER_PATH)
+    search_and_download("Turtles", driver_path=DRIVER_PATH)
 except:
     print("search and download error")
 
