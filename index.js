@@ -27,13 +27,17 @@ app.get("/", async (req, res) => {
 
 app.get("/scrape", (req, res) => {
   const { spawn } = require("child_process");
-  const pythonProcess = spawn("python", ["./scrape.py"]);
+  const pythonProcess = spawn("python", ["./python_scripts/scrape.py"]);
 
   pythonProcess.stdout.on("data", function(data) {
     console.log(data.toString());
   });
 
   res.send("scraping...");
+});
+
+app.get("/mosaic", (req, res) => {
+  res.send("creating mosaic...");
 });
 
 const PORT = process.env.PORT || 5000;
