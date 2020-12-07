@@ -85,3 +85,30 @@ def create_image_grid(images, dimensions):
         grid_img.paste(images[index], (col * width, row * height))
 
     return grid_img
+
+
+def create_photomosaic(target_image, input_images, grid_size, reuse_images=True):
+    target_images = split_image(target_image, grid_size)
+
+    output_images = []
+    count = 0
+    rgb_avgs = []
+
+    for img in input_images:
+        try:
+            rgb_avgs.append(get_average_rgb(img))
+        except ValueError:
+            continue
+
+    for img in target_images:
+        avg = get_average_rgb(img)
+        match_index = get_best_match_index(avg, rgb_avgs)
+        output_images.append(input_images[match_index])
+
+        count += 1
+
+        if not reuse_images:
+            input_images.remove(match_index)
+
+    mosaic_image = create_image_grid(output_images, grid_size)
+    return mosaic_image
