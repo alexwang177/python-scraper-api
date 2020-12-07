@@ -32,3 +32,9 @@ def get_images(images_directory):
         except:
             print(f"Invalid image {file_path}")
     return images
+
+
+def get_average_rgb(image):
+    im = np.array(image)
+    w, h, d = im.shape
+    return tuple((np.average(im.reshape(w * h, d), axis=0)))
