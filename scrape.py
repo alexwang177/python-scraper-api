@@ -109,6 +109,8 @@ DRIVER_PATH = "./drivers/chromedriver"
 wd = webdriver.Chrome(executable_path=DRIVER_PATH)
 
 try:
-    search_and_download("Puppies", driver_path=DRIVER_PATH)
+    search_and_download("Sharks", driver_path=DRIVER_PATH)
 except:
     print("search and download error")
+
+wd.quit()
