@@ -3,11 +3,11 @@ const app = express();
 
 app.get("/", async (req, res) => {
   const { spawn } = require("child_process");
-  const pythonProcess = spawn("python", ["./test.py"]);
+  const pythonProcess = spawn("python", ["./python_scripts/test.py"]);
 
   console.log("starting...");
 
-  b64_data = "";
+  let b64_data = "";
 
   pythonProcess.stdout.on("data", function(data) {
     b64_data += data;
@@ -37,7 +37,31 @@ app.get("/scrape", (req, res) => {
 });
 
 app.get("/mosaic", (req, res) => {
-  res.send("creating mosaic...");
+  const { spawn } = require("child_process");
+  const pythonProcess = spawn("python", [
+    "./python_scripts/mosaic.py",
+    "./images/cute_turtle.jpg",
+    "./images/turtles",
+    "200 200",
+    ""
+  ]);
+
+  let b64_data = "";
+
+  pythonProcess.stdout.on("data", function(data) {
+    b64_data += data.toString();
+  });
+
+  pythonProcess.stdout.on("close", function(data) {
+    b64_data = b64_data.substring(2, b64_data.length - 1);
+
+    var img = Buffer.from(b64_data, "base64");
+    res.writeHead(200, {
+      "Content-Type": "image/jpeg",
+      "Content-Length": img.length
+    });
+    res.end(img);
+  });
 });
 
 const PORT = process.env.PORT || 5000;

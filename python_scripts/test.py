@@ -31,4 +31,4 @@ with open("temp_image.jpg", "rb") as imageFile:
         print("Error encoding string")
 
     # Send base 64 string to parent process
-    print(encodedString)
+    print("Encoded:" + encodedString)

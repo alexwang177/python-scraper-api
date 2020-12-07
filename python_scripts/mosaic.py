@@ -1,21 +1,21 @@
 #!/usr/bin/env python
 import os
+import sys
 import random
 import argparse
+import base64
 from PIL import Image
 import numpy as np
 
-parser = argparse.ArgumentParser(
-    description='Creates a photomosaic from input images')
-parser.add_argument('--target', dest='target', required=True,
-                    help="Image to create mosaic from")
-parser.add_argument('--images', dest='images',
-                    required=True, help="Directory of images")
-parser.add_argument('--grid', nargs=2, dest='grid',
-                    required=True, help="Size of photo mosaic")
-parser.add_argument('--output', dest='output', required=False)
+target_image_path = sys.argv[1]
+images_directory_path = sys.argv[2]
+grid_input = tuple(map(int, sys.argv[3].split()))
+output_folder_path = sys.argv[4]
 
-args = parser.parse_args()
+# target_image_path = "./images/cute_turtle.jpg"
+# images_directory_path = "./images/turtles"
+# grid_input = (50, 50)
+# output_folder_path = None
 
 
 def get_images(images_directory):
@@ -116,46 +116,46 @@ def create_photomosaic(target_image, input_images, grid_size, reuse_images=True)
 # -------------------------------------------------------------------
 
 
-target_image = Image.open(args.target)
+target_image = Image.open(target_image_path)
 
 # Input images
-input_images = get_images(args.images)
+input_images = get_images(images_directory_path)
 
 # Check for no valid images
 if input_images == []:
-    print(f"No valid images found in {args.images}")
+    # print(f"No valid images found in {images_directory_path}")
     exit()
 
 # Shuffle list
 random.shuffle(input_images)
 
 # Size of grid
-grid_size = (int(args.grid[0]), int(args.grid[1]))
+grid_size = grid_input
 
 # Output
 output_filename = "mosaic.jpeg"
-if args.output:
-    output_filename = args.output
+if output_folder_path:
+    output_filename = output_folder_path
 
 reuse_images = True
 resize_input = True
 
-print("starting mosaic creation")
+# print("starting mosaic creation")
 
 if not reuse_images:
     if grid_size[0] * grid_size[1] > len(input_images):
-        print("# of images not enough")
+        # print("# of images not enough")
         exit()
 
 # Resizing input
 if resize_input:
-    print("resizing images...")
+    # print("resizing images...")
 
     # Compute max w and h of tiles
     dimensions = (int(target_image.size[0] / grid_size[1]),
                   int(target_image.size[1] / grid_size[0]))
 
-    print(f"max tile dimensions: {dimensions}")
+    # print(f"max tile dimensions: {dimensions}")
 
     # Resize
     for img in input_images:
@@ -168,4 +168,18 @@ mosaic_image = create_photomosaic(
 # Save mosaic
 mosaic_image.save(output_filename, "jpeg")
 
-print(f"Saved output to {output_filename}")
+# print(f"Saved output to {output_filename}")
+
+# Convert image to base 64
+try:
+    with open("./mosaic.jpeg", "rb") as imageFile:
+
+        try:
+            encodedString = base64.b64encode(imageFile.read())
+        except:
+            print("Error encoding string")
+
+        # Send base 64 string to parent process
+        print(str(encodedString))
+except Exception as e:
+    print(f"Error: {e}")
