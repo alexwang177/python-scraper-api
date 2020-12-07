@@ -46,8 +46,8 @@ def split_image(image, size):
     w, h = int(W / n), int(H / m)
     imgs = []
 
-    for i in range(n):
-        for j in range(m):
+    for j in range(m):
+        for i in range(n):
             imgs.append(image.crop((i * w, j * h, (i + 1) * w, (j + 1) * h)))
 
     return imgs
