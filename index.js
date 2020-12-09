@@ -103,9 +103,11 @@ app.get("/mosaic/:target_query/:tile_query", (req, res) => {
           if (err) throw err;
         });
       }
-    });
 
-    fs.rmdir("./images/" + tileDirectory);
+      fs.rmdir("./images/" + tileDirectory, err => {
+        if (err) throw err;
+      });
+    });
 
     var img = Buffer.from(b64_data, "base64");
     res.writeHead(200, {
