@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from selenium import webdriver
 from PIL import Image
 import requests
@@ -5,9 +6,10 @@ import hashlib
 import io
 import time
 import os
+import sys
 
 
-def fetch_image_urls(query: str, max_links_to_fetch: int, wd: webdriver, sleep_between_interactions: int = 1):
+def fetch_image_urls(query: int, max_links_to_fetch: int, wd: webdriver, sleep_between_interactions: int = 1):
     def scroll_to_end(wd):
         wd.execute_script(
             "window.scrollTo(0, document.body.scrollHeight);")
@@ -89,7 +91,7 @@ def persist_image(folder_path: str, url: str):
         print(f"Error - Could not save {url} - {e}")
 
 
-def search_and_download(search_term: str, driver_path: str, target_path="./images", number_images=100):
+def search_and_download(search_term: str, driver_path: str, target_path="./images", number_images=50):
     target_folder = os.path.join(
         target_path, "_".join(search_term.lower().split(" ")))
 
@@ -104,12 +106,17 @@ def search_and_download(search_term: str, driver_path: str, target_path="./image
         persist_image(target_folder, url=url)
 
 
+try:
+    print(sys.argv[1])
+except:
+    print("sys error")
+
 DRIVER_PATH = "./drivers/chromedriver"
 
 wd = webdriver.Chrome(executable_path=DRIVER_PATH)
 
 try:
-    search_and_download("Turtles", driver_path=DRIVER_PATH)
+    search_and_download(sys.argv[1], driver_path=DRIVER_PATH)
 except:
     print("search and download error")
 
