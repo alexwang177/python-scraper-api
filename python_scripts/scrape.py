@@ -72,10 +72,15 @@ def fetch_image_urls(query: int, max_links_to_fetch: int, wd: webdriver, sleep_b
 
 
 def persist_image(folder_path: str, url: str):
+
+    print("before request")
+
     try:
-        image_content = requests.get(url).content
+        image_content = requests.get(url, timeout=5).content
     except Exception as e:
         print(f"Error - Could not download {url} - {e}")
+
+    print("after request, before saving")
 
     try:
         image_file = io.BytesIO(image_content)
@@ -90,6 +95,8 @@ def persist_image(folder_path: str, url: str):
     except Exception as e:
         print(f"Error - Could not save {url} - {e}")
 
+    print("after saving")
+
 
 def search_and_download(search_term: str, driver_path: str, target_path="./images", number_images=50):
     target_folder = os.path.join(
@@ -103,7 +110,10 @@ def search_and_download(search_term: str, driver_path: str, target_path="./image
             search_term, number_images, wd=wd, sleep_between_interactions=0.5)
 
     for url in url_set:
-        persist_image(target_folder, url=url)
+        try:
+            persist_image(target_folder, url=url)
+        except Exception as e:
+            print(f"persist image error - {e}")
 
 
 try:

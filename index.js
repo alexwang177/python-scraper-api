@@ -28,10 +28,17 @@ app.get("/", async (req, res) => {
   });
 });
 
-app.get("/scrape", (req, res) => {
-  const pythonProcess = spawn("python", ["./python_scripts/scrape.py"]);
+app.get("/scrape/:tile_query", (req, res) => {
+  const pythonProcess = spawn("python", [
+    "./python_scripts/scrape.py",
+    req.params.tile_query
+  ]);
 
   pythonProcess.stdout.on("data", function(data) {
+    console.log(data.toString());
+  });
+
+  pythonProcess.stderr.on("data", function(data) {
     console.log(data.toString());
   });
 
