@@ -1,6 +1,8 @@
 const express = require("express");
 const fs = require("fs");
 const path = require("path");
+const multer = require("multer");
+
 const app = express();
 
 const { spawn, spawnSync } = require("child_process");
@@ -72,58 +74,77 @@ app.get("/mosaic", (req, res) => {
   });
 });
 
-app.get("/mosaic/:target_query/:tile_query", (req, res) => {
-  console.log("Starting web scraping...\n");
+const upload = multer({
+  dest: "images"
+});
 
-  const scrapePyProcess = spawnSync("python", [
-    "./python_scripts/scrape.py",
-    req.params.tile_query
-  ]);
+app.post(
+  "/mosaic/:target_query/:tile_query",
+  upload.single("target_image"),
+  (req, res) => {
+    console.log("Uploading target image...\n");
 
-  const tileDirectory = req.params.tile_query
-    .toLowerCase()
-    .split(" ")
-    .join("_");
+    console.log(req.file.filename);
+    fs.rename(
+      "./images/" + req.file.filename,
+      "./images/target_image.jpg",
+      err => {
+        if (err) console.log(err.message);
+      }
+    );
 
-  const mosaicPyProcess = spawn("python", [
-    "./python_scripts/mosaic.py",
-    "./images/cute_turtle.jpg",
-    "./images/" + tileDirectory,
-    "100 100",
-    ""
-  ]);
+    console.log("Starting web scraping...\n");
 
-  let b64_data = "";
+    const scrapePyProcess = spawnSync("python", [
+      "./python_scripts/scrape.py",
+      req.params.tile_query
+    ]);
 
-  mosaicPyProcess.stdout.on("data", function(data) {
-    b64_data += data.toString();
-  });
+    const tileDirectory = req.params.tile_query
+      .toLowerCase()
+      .split(" ")
+      .join("_");
 
-  mosaicPyProcess.stdout.on("close", function(data) {
-    b64_data = b64_data.substring(2, b64_data.length - 1);
+    const mosaicPyProcess = spawn("python", [
+      "./python_scripts/mosaic.py",
+      "./images/target_image.jpg",
+      "./images/" + tileDirectory,
+      "100 100",
+      ""
+    ]);
 
-    fs.readdir("./images/" + tileDirectory, (err, files) => {
-      if (err) throw err;
+    let b64_data = "";
 
-      for (const file of files) {
-        fs.unlink(path.join("./images/" + tileDirectory, file), err => {
+    mosaicPyProcess.stdout.on("data", function(data) {
+      b64_data += data.toString();
+    });
+
+    mosaicPyProcess.stdout.on("close", function(data) {
+      b64_data = b64_data.substring(2, b64_data.length - 1);
+
+      fs.readdir("./images/" + tileDirectory, (err, files) => {
+        if (err) throw err;
+
+        for (const file of files) {
+          fs.unlink(path.join("./images/" + tileDirectory, file), err => {
+            if (err) throw err;
+          });
+        }
+
+        fs.rmdir("./images/" + tileDirectory, err => {
           if (err) throw err;
         });
-      }
-
-      fs.rmdir("./images/" + tileDirectory, err => {
-        if (err) throw err;
       });
-    });
 
-    var img = Buffer.from(b64_data, "base64");
-    res.writeHead(200, {
-      "Content-Type": "image/jpeg",
-      "Content-Length": img.length
+      var img = Buffer.from(b64_data, "base64");
+      res.writeHead(200, {
+        "Content-Type": "image/jpeg",
+        "Content-Length": img.length
+      });
+      res.end(img);
     });
-    res.end(img);
-  });
-});
+  }
+);
 
 const PORT = process.env.PORT || 5000;
 
