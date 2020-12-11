@@ -121,7 +121,7 @@ try:
 except:
     print("sys error")
 
-# CHROMEDRIVER_PATH = "./drivers/chromedriver"
+#CHROMEDRIVER_PATH = "./drivers/chromedriver"
 CHROMEDRIVER_PATH = "/app/.chromedriver/bin/chromedriver"
 chrome_bin = os.environ.get("GOOGLE_CHROME_BIN", "chromedriver")
 options = webdriver.ChromeOptions()
@@ -134,7 +134,7 @@ wd = webdriver.Chrome(executable_path=CHROMEDRIVER_PATH,
 
 # Now you can start using Selenium
 
-# wd = webdriver.Chrome(executable_path=CHROMEDRIVER_PATH)
+#wd = webdriver.Chrome(executable_path=CHROMEDRIVER_PATH)
 
 try:
     search_and_download(sys.argv[1], driver_path=CHROMEDRIVER_PATH)

@@ -107,6 +107,12 @@ app.post(
       .split(" ")
       .join("_");
 
+    fs.readdir("./images/" + tileDirectory, (err, files) => {
+      if (err) throw err;
+
+      console.log("Number of images: " + files.length);
+    });
+
     const mosaicPyProcess = spawn("python", [
       "./python_scripts/mosaic.py",
       "./images/target_image.jpg",
