@@ -105,9 +105,12 @@ def search_and_download(search_term: str, driver_path: str, target_path="./image
     if not os.path.exists(target_folder):
         os.makedirs(target_folder)
 
-    with webdriver.Chrome(executable_path=driver_path) as wd:
-        url_set = fetch_image_urls(
-            search_term, number_images, wd=wd, sleep_between_interactions=0.5)
+    try:
+        with webdriver.Chrome(executable_path=driver_path) as wd:
+            url_set = fetch_image_urls(
+                search_term, number_images, wd=wd, sleep_between_interactions=0.5)
+    except Exception as e:
+        print(f"webdriver fetch issue - {e}")
 
     for url in url_set:
         try:
@@ -134,7 +137,7 @@ wd = webdriver.Chrome(executable_path=CHROMEDRIVER_PATH,
 
 # Now you can start using Selenium
 
-#wd = webdriver.Chrome(executable_path=CHROMEDRIVER_PATH)
+# wd = webdriver.Chrome(executable_path=CHROMEDRIVER_PATH)
 
 try:
     search_and_download(sys.argv[1], driver_path=CHROMEDRIVER_PATH)

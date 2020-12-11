@@ -100,14 +100,7 @@ app.post(
       req.params.tile_query
     ]);
 
-    scrapePyProcess.stdout.on("data", data => {
-      console.log(data.toString());
-    });
-
-    scrapePyProcess.stderr.on("data", data => {
-      console.log(data.toString());
-    });
-
+    console.log(scrapePyProcess.stdout.toString());
     console.log("Scraping finished");
 
     const tileDirectory = req.params.tile_query
