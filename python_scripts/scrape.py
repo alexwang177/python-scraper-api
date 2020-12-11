@@ -121,12 +121,21 @@ try:
 except:
     print("sys error")
 
-DRIVER_PATH = "./drivers/chromedriver"
+CHROMEDRIVER_PATH = "/app/.chromedriver/bin/chromedriver"
+GOOGLE_CHROME_BIN = "/app/.apt/usr/bin/google-chrome"
 
-wd = webdriver.Chrome(executable_path=DRIVER_PATH)
+chrome_options = webdriver.ChromeOptions()
+chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
+chrome_options.add_argument("--headless")
+chrome_options.add_argument("--disable-dev-shm-usage")
+chrome_options.add_argument("--no-sandbox")
+wd = webdriver.Chrome(executable_path=os.environ.get(
+    "CHROMEDRIVER_PATH"), chrome_options=chrome_options)
+
+# Now you can start using Selenium
 
 try:
-    search_and_download(sys.argv[1], driver_path=DRIVER_PATH)
+    search_and_download(sys.argv[1], driver_path=CHROMEDRIVER_PATH)
 except:
     print("search and download error")
 
