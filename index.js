@@ -100,6 +100,8 @@ app.post(
       req.params.tile_query
     ]);
 
+    console.log("Scraping finished");
+
     const tileDirectory = req.params.tile_query
       .toLowerCase()
       .split(" ")
@@ -121,6 +123,8 @@ app.post(
 
     mosaicPyProcess.stdout.on("close", function(data) {
       b64_data = b64_data.substring(2, b64_data.length - 1);
+
+      console.log(b64_data);
 
       fs.readdir("./images/" + tileDirectory, (err, files) => {
         if (err) throw err;
