@@ -98,7 +98,7 @@ def persist_image(folder_path: str, url: str):
     print("after saving")
 
 
-def search_and_download(search_term: str, driver_path: str, target_path="./images", number_images=50):
+def search_and_download(search_term: str, driver_path: str, wd: webdriver, target_path="./images", number_images=50):
     target_folder = os.path.join(
         target_path, "_".join(search_term.lower().split(" ")))
 
@@ -106,12 +106,12 @@ def search_and_download(search_term: str, driver_path: str, target_path="./image
         os.makedirs(target_folder)
 
     try:
-        with webdriver.Chrome(executable_path=driver_path) as wd:
-            try:
-                url_set = fetch_image_urls(
-                    search_term, number_images, wd=wd, sleep_between_interactions=2)
-            except Exception as e:
-                print(f"fetch_image_urls function call error - {e}")
+        # with webdriver.Chrome(executable_path=driver_path) as wd:
+        try:
+            url_set = fetch_image_urls(
+                search_term, number_images, wd=wd, sleep_between_interactions=2)
+        except Exception as e:
+            print(f"fetch_image_urls function call error - {e}")
     except Exception as e:
         print(f"webdriver fetch issue - {e}")
 
@@ -149,7 +149,7 @@ wd = webdriver.Chrome(executable_path=CHROMEDRIVER_PATH,
 # wd = webdriver.Chrome(executable_path=CHROMEDRIVER_PATH)
 
 try:
-    search_and_download(sys.argv[1], driver_path=CHROMEDRIVER_PATH)
+    search_and_download(sys.argv[1], driver_path=CHROMEDRIVER_PATH, wd=wd)
 except:
     print("search and download error")
 
