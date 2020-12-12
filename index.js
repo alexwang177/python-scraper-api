@@ -52,7 +52,7 @@ app.get("/mosaic", (req, res) => {
     "./python_scripts/mosaic.py",
     "./images/cute_turtle.jpg",
     "./images/turtles",
-    "200 200",
+    "50 50",
     ""
   ]);
 
