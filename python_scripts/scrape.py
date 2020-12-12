@@ -98,7 +98,7 @@ def persist_image(folder_path: str, url: str):
     print("after saving")
 
 
-def search_and_download(search_term: str, driver_path: str, wd: webdriver, target_path="./images", number_images=10):
+def search_and_download(search_term: str, driver_path: str, wd: webdriver, target_path="./images", number_images=5):
     target_folder = os.path.join(
         target_path, "_".join(search_term.lower().split(" ")))
 
@@ -109,7 +109,7 @@ def search_and_download(search_term: str, driver_path: str, wd: webdriver, targe
         # with webdriver.Chrome(executable_path=driver_path) as wd:
         try:
             url_set = fetch_image_urls(
-                search_term, number_images, wd=wd, sleep_between_interactions=2)
+                search_term, number_images, wd=wd, sleep_between_interactions=0.5)
         except Exception as e:
             print(f"fetch_image_urls function call error - {e}")
     except Exception as e:

@@ -118,7 +118,7 @@ app.post(
       "./python_scripts/mosaic.py",
       "./images/target_image.jpg",
       "./images/" + tileDirectory,
-      "20 20",
+      "10 10",
       ""
     ]);
 
