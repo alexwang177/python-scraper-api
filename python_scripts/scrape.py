@@ -98,7 +98,7 @@ def persist_image(folder_path: str, url: str):
     print("after saving")
 
 
-def search_and_download(search_term: str, driver_path: str, wd: webdriver, target_path="./images", number_images=5):
+def search_and_download(search_term: str, driver_path: str, wd: webdriver, target_path="./images", number_images=50):
     target_folder = os.path.join(
         target_path, "_".join(search_term.lower().split(" ")))
 
@@ -127,26 +127,26 @@ try:
 except:
     print("sys error")
 
-#CHROMEDRIVER_PATH = "./drivers/chromedriver"
-CHROMEDRIVER_PATH = "/app/.chromedriver/bin/chromedriver"
-chrome_bin = os.environ.get("GOOGLE_CHROME_BIN", "chromedriver")
-options = webdriver.ChromeOptions()
-options.binary_location = chrome_bin
-options.add_argument("--disable-gpu")
-options.add_argument("--no-sandbox")
-options.add_argument("--headless")
-options.add_argument('--disable-dev-shm-usage')
-options.add_argument("--example-flag")
-options.add_argument('--window-size=1280x1696')
-options.add_argument('--hide-scrollbars')
-options.add_argument('--single-process')
-options.add_argument('--ignore-certificate-errors')
-wd = webdriver.Chrome(executable_path=CHROMEDRIVER_PATH,
-                      chrome_options=options)
+CHROMEDRIVER_PATH = "./drivers/chromedriver"
+# CHROMEDRIVER_PATH = "/app/.chromedriver/bin/chromedriver"
+# chrome_bin = os.environ.get("GOOGLE_CHROME_BIN", "chromedriver")
+# options = webdriver.ChromeOptions()
+# options.binary_location = chrome_bin
+# options.add_argument("--disable-gpu")
+# options.add_argument("--no-sandbox")
+# options.add_argument("--headless")
+# options.add_argument('--disable-dev-shm-usage')
+# options.add_argument("--example-flag")
+# options.add_argument('--window-size=1280x1696')
+# options.add_argument('--hide-scrollbars')
+# options.add_argument('--single-process')
+# options.add_argument('--ignore-certificate-errors')
+# wd = webdriver.Chrome(executable_path=CHROMEDRIVER_PATH,
+#                       chrome_options=options)
 
 # Now you can start using Selenium
 
-# wd = webdriver.Chrome(executable_path=CHROMEDRIVER_PATH)
+wd = webdriver.Chrome(executable_path=CHROMEDRIVER_PATH)
 
 try:
     search_and_download(sys.argv[1], driver_path=CHROMEDRIVER_PATH, wd=wd)

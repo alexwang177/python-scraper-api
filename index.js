@@ -2,6 +2,7 @@ const express = require("express");
 const fs = require("fs");
 const path = require("path");
 const multer = require("multer");
+const Queue = require("bull");
 
 const app = express();
 
@@ -78,6 +79,48 @@ const upload = multer({
   dest: "images"
 });
 
+const REDIS_URL = process.env.REDIS_URL || "redis://127.0.0.1:6379";
+
+const workQueue = new Queue("work", REDIS_URL);
+
+workQueue.process(async job => {
+  let sum = 0;
+
+  for (let i = 1; i <= 1000000000; i++) {
+    sum += i;
+  }
+
+  return sum;
+});
+
+workQueue.on("completed", (job, result) => {
+  console.log(`Job with id: ${job.id} completed with result: ${result}`);
+});
+
+app.post("/bigsum", async (req, res) => {
+  let job = await workQueue.add({ data: "some data" });
+  res.json({ id: job.id });
+});
+
+app.get("/bigsum/:job_id", async (req, res) => {
+  let job = await workQueue.getJob(req.params.job_id);
+
+  if (job === null) {
+    res.status(404).end();
+  } else {
+    const finished = await job.isCompleted();
+
+    console.log(finished);
+
+    if (finished) {
+      const result = await job.finished();
+      res.json({ result: result });
+    } else {
+      res.json({ result: "try again later" });
+    }
+  }
+});
+
 app.post(
   "/mosaic/:target_query/:tile_query",
   upload.single("target_image"),
@@ -118,7 +161,7 @@ app.post(
       "./python_scripts/mosaic.py",
       "./images/target_image.jpg",
       "./images/" + tileDirectory,
-      "10 10",
+      "100 100",
       ""
     ]);
 
@@ -156,6 +199,8 @@ app.post(
     });
   }
 );
+
+app.get("/mosaic/job/:job_id", async (req, res) => {});
 
 const PORT = process.env.PORT || 5000;
 
