@@ -83,41 +83,45 @@ const REDIS_URL = process.env.REDIS_URL || "redis://127.0.0.1:6379";
 
 const workQueue = new Queue("work", REDIS_URL);
 
-workQueue.process(async job => {
-  let sum = 0;
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
-  for (let i = 1; i <= 1000000000; i++) {
-    sum += i;
+workQueue.process(async job => {
+  let progress = 0;
+
+  while (progress < 10) {
+    await sleep(1000);
+    progress += 1;
+    console.log(progress + " seconds");
+    job.progress(progress);
   }
 
-  return sum;
+  return { value: "This is important data" };
 });
 
 workQueue.on("completed", (job, result) => {
-  console.log(`Job with id: ${job.id} completed with result: ${result}`);
+  console.log(`Job with id: ${job.id} completed with result: ${result.value}`);
 });
 
 app.post("/bigsum", async (req, res) => {
-  let job = await workQueue.add({ data: "some data" });
+  let job = await workQueue.add();
   res.json({ id: job.id });
 });
 
 app.get("/bigsum/:job_id", async (req, res) => {
-  let job = await workQueue.getJob(req.params.job_id);
+  let id = req.params.job_id;
+  let job = await workQueue.getJob(id);
 
-  if (job === null) {
+  console.log(job);
+
+  if (job === null || job === undefined) {
     res.status(404).end();
   } else {
-    const finished = await job.isCompleted();
-
-    console.log(finished);
-
-    if (finished) {
-      const result = await job.finished();
-      res.json({ result: result });
-    } else {
-      res.json({ result: "try again later" });
-    }
+    let state = await job.getState();
+    let progress = job._progress;
+    let reason = job.failedReason;
+    res.json({ id, state, progress, reason });
   }
 });
 
