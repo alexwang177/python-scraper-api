@@ -90,7 +90,7 @@ function sleep(ms) {
 workQueue.process(async job => {
   let progress = 0;
 
-  while (progress < 10) {
+  while (progress < 20) {
     await sleep(1000);
     progress += 1;
     console.log(progress + " seconds");
