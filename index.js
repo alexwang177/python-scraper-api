@@ -1,35 +1,19 @@
 const express = require("express");
 const fs = require("fs");
-const path = require("path");
 const multer = require("multer");
+const Queue = require("bull");
+const Worker = require("./js_modules/worker.js");
+const { spawn } = require("child_process");
 
+// Initialize Express instance
 const app = express();
 
-const { spawn, spawnSync } = require("child_process");
-
+// Default route
 app.get("/", async (req, res) => {
-  const pythonProcess = spawn("python", ["./python_scripts/test.py"]);
-
-  console.log("starting...");
-
-  let b64_data = "";
-
-  pythonProcess.stdout.on("data", function(data) {
-    b64_data += data;
-  });
-
-  pythonProcess.stdout.on("close", function(data) {
-    b64_data = b64_data.substring(2, b64_data.length - 1);
-
-    var img = Buffer.from(b64_data, "base64");
-    res.writeHead(200, {
-      "Content-Type": "image/jpeg",
-      "Content-Length": img.length
-    });
-    res.end(img);
-  });
+  res.send("Hello Peeps");
 });
 
+// Scrape route
 app.get("/scrape/:tile_query", (req, res) => {
   const pythonProcess = spawn("python", [
     "./python_scripts/scrape.py",
@@ -47,41 +31,27 @@ app.get("/scrape/:tile_query", (req, res) => {
   res.send("scraping...");
 });
 
-app.get("/mosaic", (req, res) => {
-  const pythonProcess = spawn("python", [
-    "./python_scripts/mosaic.py",
-    "./images/cute_turtle.jpg",
-    "./images/turtles",
-    "200 200",
-    ""
-  ]);
-
-  let b64_data = "";
-
-  pythonProcess.stdout.on("data", function(data) {
-    b64_data += data.toString();
-  });
-
-  pythonProcess.stdout.on("close", function(data) {
-    b64_data = b64_data.substring(2, b64_data.length - 1);
-
-    var img = Buffer.from(b64_data, "base64");
-    res.writeHead(200, {
-      "Content-Type": "image/jpeg",
-      "Content-Length": img.length
-    });
-    res.end(img);
-  });
-});
-
+// Intialize multer object
 const upload = multer({
   dest: "images"
 });
 
+// Initialize Work Queue
+const REDIS_URL = process.env.REDIS_URL || "redis://127.0.0.1:6379";
+let workQueue = new Queue("work", REDIS_URL);
+
+Worker.process(workQueue);
+
+// Work Queue Listener
+workQueue.on("completed", (job, result) => {
+  console.log(`Job with id: ${job.id} completed`);
+});
+
+// Start mosaic creation job route
 app.post(
-  "/mosaic/:target_query/:tile_query",
+  "/mosaic/:tile_query",
   upload.single("target_image"),
-  (req, res) => {
+  async (req, res) => {
     console.log("Uploading target image...\n");
 
     console.log(req.file.filename);
@@ -93,58 +63,40 @@ app.post(
       }
     );
 
-    console.log("Starting web scraping...\n");
+    let job = await workQueue.add({ tile_query: req.params.tile_query });
+    res.json({ id: job.id });
+  }
+);
 
-    const scrapePyProcess = spawnSync("python", [
-      "./python_scripts/scrape.py",
-      req.params.tile_query
-    ]);
+// Check mosaic job route
+app.get("/mosaic/job/:job_id", async (req, res) => {
+  let id = req.params.job_id;
+  let job = await workQueue.getJob(id);
 
-    const tileDirectory = req.params.tile_query
-      .toLowerCase()
-      .split(" ")
-      .join("_");
+  if (job === null || job === undefined) {
+    res.status(404).end();
+  } else {
+    let state = await job.getState();
+    let progress = job._progress;
+    let reason = job.failedReason;
+    let returnvalue = "" + job.returnvalue;
 
-    const mosaicPyProcess = spawn("python", [
-      "./python_scripts/mosaic.py",
-      "./images/target_image.jpg",
-      "./images/" + tileDirectory,
-      "100 100",
-      ""
-    ]);
+    console.log("state: " + state);
 
-    let b64_data = "";
-
-    mosaicPyProcess.stdout.on("data", function(data) {
-      b64_data += data.toString();
-    });
-
-    mosaicPyProcess.stdout.on("close", function(data) {
-      b64_data = b64_data.substring(2, b64_data.length - 1);
-
-      fs.readdir("./images/" + tileDirectory, (err, files) => {
-        if (err) throw err;
-
-        for (const file of files) {
-          fs.unlink(path.join("./images/" + tileDirectory, file), err => {
-            if (err) throw err;
-          });
-        }
-
-        fs.rmdir("./images/" + tileDirectory, err => {
-          if (err) throw err;
-        });
-      });
-
-      var img = Buffer.from(b64_data, "base64");
+    if (state == "completed") {
+      var img = Buffer.from(returnvalue, "base64");
       res.writeHead(200, {
         "Content-Type": "image/jpeg",
         "Content-Length": img.length
       });
       res.end(img);
-    });
+    } else if (state == "failed") {
+      res.json({ msg: "job failed" });
+    } else {
+      res.json({ msg: "try again later" });
+    }
   }
-);
+});
 
 const PORT = process.env.PORT || 5000;
 
