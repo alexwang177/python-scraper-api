@@ -2,8 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const { spawn } = require("child_process");
 
-// Probably will have to get rid of spawnSync because it blocks event loop no matter what (no requests can come in)
-// Maybe try making it return a promise or something
+// Returns a promise that resolves with tile_directory
 module.exports.scrape = function(tile_query) {
   return new Promise(function(resolve, reject) {
     console.log("Starting web scraping...\n");
@@ -36,7 +35,7 @@ module.exports.scrape = function(tile_query) {
   });
 };
 
-// Make this return a promise (with the resulting value as the b64 string)
+// Returns a promise that resolves with b64 string
 module.exports.makeMosaic = function(tileDirectory) {
   return new Promise(function(resolve, reject) {
     const mosaicPyProcess = spawn("python", [
