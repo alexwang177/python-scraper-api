@@ -80,8 +80,6 @@ app.get("/mosaic/job/:job_id", async (req, res) => {
     console.log("state: " + state);
 
     if (state == "completed") {
-      console.log(returnvalue);
-
       var img = Buffer.from(returnvalue, "base64");
       res.writeHead(200, {
         "Content-Type": "image/jpeg",
