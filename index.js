@@ -2,7 +2,7 @@ const express = require("express");
 const fs = require("fs");
 const multer = require("multer");
 const Queue = require("bull");
-const Worker = require("./worker.js");
+const Worker = require("./js_modules/worker.js");
 const { spawn } = require("child_process");
 
 // Initialize Express instance
@@ -44,7 +44,7 @@ Worker.process(workQueue);
 
 // Work Queue Listener
 workQueue.on("completed", (job, result) => {
-  console.log(`Job with id: ${job.id} completed with result: ${result}`);
+  console.log(`Job with id: ${job.id} completed`);
 });
 
 // Start mosaic creation job route
