@@ -3,16 +3,17 @@ const fs = require("fs");
 const multer = require("multer");
 const Queue = require("bull");
 const Worker = require("./worker.js");
+const { spawn } = require("child_process");
 
 // Initialize Express instance
 const app = express();
 
-const { spawn } = require("child_process");
-
+// Default route
 app.get("/", async (req, res) => {
   res.send("Hello Peeps");
 });
 
+// Scrape route
 app.get("/scrape/:tile_query", (req, res) => {
   const pythonProcess = spawn("python", [
     "./python_scripts/scrape.py",
@@ -35,16 +36,18 @@ const upload = multer({
   dest: "images"
 });
 
-// Intialize Work Queue
+// Initialize Work Queue
 const REDIS_URL = process.env.REDIS_URL || "redis://127.0.0.1:6379";
 let workQueue = new Queue("work", REDIS_URL);
 
 Worker.process(workQueue);
 
+// Work Queue Listener
 workQueue.on("completed", (job, result) => {
   console.log(`Job with id: ${job.id} completed with result: ${result}`);
 });
 
+// Start mosaic creation job route
 app.post(
   "/mosaic/:tile_query",
   upload.single("target_image"),
@@ -65,6 +68,7 @@ app.post(
   }
 );
 
+// Check mosaic job route
 app.get("/mosaic/job/:job_id", async (req, res) => {
   let id = req.params.job_id;
   let job = await workQueue.getJob(id);

@@ -1,10 +1,6 @@
-const maxJobsPerWorker = 50;
-
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 const Mosaic = require("./mosaic.js");
+
+const maxJobsPerWorker = 50;
 
 module.exports.process = async function(workQueue) {
   workQueue.process(maxJobsPerWorker, async job => {
