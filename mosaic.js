@@ -1,64 +1,80 @@
 const fs = require("fs");
 const path = require("path");
-const { spawn, spawnSync } = require("child_process");
+const { spawn } = require("child_process");
 
+// Probably will have to get rid of spawnSync because it blocks event loop no matter what (no requests can come in)
+// Maybe try making it return a promise or something
 module.exports.scrape = function(tile_query) {
-  console.log("Starting web scraping...\n");
+  return new Promise(function(resolve, reject) {
+    console.log("Starting web scraping...\n");
 
-  const scrapePyProcess = spawnSync("python", [
-    "./python_scripts/scrape.py",
-    tile_query
-  ]);
+    const scrapePyProcess = spawn("python", [
+      "./python_scripts/scrape.py",
+      tile_query
+    ]);
 
-  console.log(scrapePyProcess.stdout.toString());
-  console.log("Scraping finished");
+    scrapePyProcess.on("close", function(data) {
+      console.log("Scraping finished");
 
-  const tileDirectory = tile_query
-    .toLowerCase()
-    .split(" ")
-    .join("_");
+      const tileDirectory = tile_query
+        .toLowerCase()
+        .split(" ")
+        .join("_");
 
-  fs.readdir("./images/" + tileDirectory, (err, files) => {
-    if (err) throw err;
-
-    console.log("Number of images: " + files.length);
-  });
-
-  return makeMosaic(tileDirectory);
-};
-
-function makeMosaic(tileDirectory) {
-  const mosaicPyProcess = spawn("python", [
-    "./python_scripts/mosaic.py",
-    "./images/target_image.jpg",
-    "./images/" + tileDirectory,
-    "100 100",
-    ""
-  ]);
-
-  let b64_data = "";
-
-  mosaicPyProcess.stdout.on("data", function(data) {
-    b64_data += data.toString();
-  });
-
-  mosaicPyProcess.stdout.on("close", function(data) {
-    b64_data = b64_data.substring(2, b64_data.length - 1);
-
-    fs.readdir("./images/" + tileDirectory, (err, files) => {
-      if (err) throw err;
-
-      for (const file of files) {
-        fs.unlink(path.join("./images/" + tileDirectory, file), err => {
-          if (err) throw err;
-        });
-      }
-
-      fs.rmdir("./images/" + tileDirectory, err => {
+      fs.readdir("./images/" + tileDirectory, (err, files) => {
         if (err) throw err;
+
+        console.log("Number of images: " + files.length);
       });
 
-      return b64_data;
+      resolve(tileDirectory);
+    });
+
+    scrapePyProcess.on("error", function(err) {
+      reject(err);
     });
   });
-}
+};
+
+// Make this return a promise (with the resulting value as the b64 string)
+module.exports.makeMosaic = function(tileDirectory) {
+  return new Promise(function(resolve, reject) {
+    const mosaicPyProcess = spawn("python", [
+      "./python_scripts/mosaic.py",
+      "./images/target_image.jpg",
+      "./images/" + tileDirectory,
+      "100 100",
+      ""
+    ]);
+
+    let b64_data = "";
+
+    mosaicPyProcess.stdout.on("data", function(data) {
+      b64_data += data.toString();
+    });
+
+    mosaicPyProcess.stdout.on("close", function(data) {
+      b64_data = b64_data.substring(2, b64_data.length - 1);
+
+      fs.readdir("./images/" + tileDirectory, (err, files) => {
+        if (err) throw err;
+
+        for (const file of files) {
+          fs.unlink(path.join("./images/" + tileDirectory, file), err => {
+            if (err) throw err;
+          });
+        }
+
+        fs.rmdir("./images/" + tileDirectory, err => {
+          if (err) throw err;
+        });
+      });
+
+      resolve(b64_data);
+    });
+
+    mosaicPyProcess.on("error", function(err) {
+      reject(err);
+    });
+  });
+};

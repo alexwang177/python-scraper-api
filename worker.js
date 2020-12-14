@@ -6,7 +6,7 @@ function sleep(ms) {
 
 const Mosaic = require("./mosaic.js");
 
-module.exports.process = function(workQueue) {
+module.exports.process = async function(workQueue) {
   workQueue.process(maxJobsPerWorker, async job => {
     // let progress = 0;
 
@@ -21,6 +21,7 @@ module.exports.process = function(workQueue) {
 
     console.log("This is tile query: " + job.data.tile_query);
 
-    return Mosaic.scrape(job.data.tile_query);
+    let tileDirectory = await Mosaic.scrape(job.data.tile_query);
+    return await Mosaic.makeMosaic(tileDirectory);
   });
 };
