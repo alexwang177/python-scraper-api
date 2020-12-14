@@ -89,7 +89,7 @@ let workQueue = new Queue("work", REDIS_URL);
 Worker.process(workQueue);
 
 workQueue.on("completed", (job, result) => {
-  console.log(`Job with id: ${job.id} completed with result: ${result.value}`);
+  console.log(`Job with id: ${job.id} completed with result: ${result}`);
 });
 
 app.post("/bigsum", async (req, res) => {
@@ -109,90 +109,34 @@ app.get("/bigsum/:job_id", async (req, res) => {
     let state = await job.getState();
     let progress = job._progress;
     let reason = job.failedReason;
-    res.json({ id, state, progress, reason });
+    let returnvalue = job.returnvalue;
+    res.json({ id, state, progress, reason, returnvalue });
   }
 });
 
-app.post("/mosaic/:tile_query", upload.single("target_image"), (req, res) => {
-  console.log("Uploading target image...\n");
+app.post(
+  "/mosaic/:tile_query",
+  upload.single("target_image"),
+  async (req, res) => {
+    console.log("Uploading target image...\n");
 
-  console.log(req.file.filename);
-  fs.rename(
-    "./images/" + req.file.filename,
-    "./images/target_image.jpg",
-    err => {
-      if (err) console.log(err.message);
-    }
-  );
-
-  console.log("Starting web scraping...\n");
-
-  const scrapePyProcess = spawnSync("python", [
-    "./python_scripts/scrape.py",
-    req.params.tile_query
-  ]);
-
-  console.log(scrapePyProcess.stdout.toString());
-  console.log("Scraping finished");
-
-  const tileDirectory = req.params.tile_query
-    .toLowerCase()
-    .split(" ")
-    .join("_");
-
-  fs.readdir("./images/" + tileDirectory, (err, files) => {
-    if (err) throw err;
-
-    console.log("Number of images: " + files.length);
-  });
-
-  const mosaicPyProcess = spawn("python", [
-    "./python_scripts/mosaic.py",
-    "./images/target_image.jpg",
-    "./images/" + tileDirectory,
-    "100 100",
-    ""
-  ]);
-
-  let b64_data = "";
-
-  mosaicPyProcess.stdout.on("data", function(data) {
-    b64_data += data.toString();
-  });
-
-  mosaicPyProcess.stdout.on("close", function(data) {
-    b64_data = b64_data.substring(2, b64_data.length - 1);
-
-    console.log(b64_data);
-
-    fs.readdir("./images/" + tileDirectory, (err, files) => {
-      if (err) throw err;
-
-      for (const file of files) {
-        fs.unlink(path.join("./images/" + tileDirectory, file), err => {
-          if (err) throw err;
-        });
+    console.log(req.file.filename);
+    fs.rename(
+      "./images/" + req.file.filename,
+      "./images/target_image.jpg",
+      err => {
+        if (err) console.log(err.message);
       }
+    );
 
-      fs.rmdir("./images/" + tileDirectory, err => {
-        if (err) throw err;
-      });
-    });
-
-    var img = Buffer.from(b64_data, "base64");
-    res.writeHead(200, {
-      "Content-Type": "image/jpeg",
-      "Content-Length": img.length
-    });
-    res.end(img);
-  });
-});
+    let job = await workQueue.add({ tile_query: req.params.tile_query });
+    res.json({ id: job.id });
+  }
+);
 
 app.get("/mosaic/job/:job_id", async (req, res) => {
   let id = req.params.job_id;
   let job = await workQueue.getJob(id);
-
-  console.log(job);
 
   if (job === null || job === undefined) {
     res.status(404).end();
@@ -200,7 +144,25 @@ app.get("/mosaic/job/:job_id", async (req, res) => {
     let state = await job.getState();
     let progress = job._progress;
     let reason = job.failedReason;
-    res.json({ id, state, progress, reason });
+    let returnvalue = "" + job.returnvalue;
+
+    console.log("state: " + state);
+
+    if (state == "completed") {
+      console.log(returnvalue);
+
+      var img = Buffer.from(returnvalue, "base64");
+      res.writeHead(200, {
+        "Content-Type": "image/jpeg",
+        "Content-Length": img.length
+      });
+      res.end(img);
+    } else if (state == "failed") {
+      console.log(job);
+      res.json({ msg: "job failed" });
+    } else {
+      res.json({ msg: "try again later" });
+    }
   }
 });
 
