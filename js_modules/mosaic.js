@@ -42,7 +42,7 @@ module.exports.makeMosaic = function(tileDirectory) {
       "./python_scripts/mosaic.py",
       "./images/target_image.jpg",
       "./images/" + tileDirectory,
-      "100 100",
+      "50 50",
       ""
     ]);
 

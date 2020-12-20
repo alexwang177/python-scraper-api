@@ -98,7 +98,7 @@ def persist_image(folder_path: str, url: str):
     print("after saving")
 
 
-def search_and_download(search_term: str, driver_path: str, wd: webdriver, target_path="./images", number_images=10):
+def search_and_download(search_term: str, driver_path: str, wd: webdriver, target_path="./images", number_images=30):
     target_folder = os.path.join(
         target_path, "_".join(search_term.lower().split(" ")))
 
