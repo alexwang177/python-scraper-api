@@ -22,7 +22,7 @@ Optional query string parameters:
 
 num_scrape: integer\
 width: integer\
-height: integer\
+height: integer
 
 \*\*\* Request Body
 
