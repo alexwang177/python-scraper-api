@@ -20,9 +20,9 @@ tile_query: string, google search term
 
 Optional query string parameters:
 
-num_scrape: integer
-width: integer
-height: integer
+num_scrape: integer\
+width: integer\
+height: integer\
 
 \*\*\* Request Body
 
