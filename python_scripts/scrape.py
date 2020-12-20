@@ -149,7 +149,8 @@ wd = webdriver.Chrome(executable_path=CHROMEDRIVER_PATH,
 # wd = webdriver.Chrome(executable_path=CHROMEDRIVER_PATH)
 
 try:
-    search_and_download(sys.argv[1], driver_path=CHROMEDRIVER_PATH, wd=wd)
+    search_and_download(
+        sys.argv[1], driver_path=CHROMEDRIVER_PATH, wd=wd, number_images=int(sys.argv[2]))
 except:
     print("search and download error")
 

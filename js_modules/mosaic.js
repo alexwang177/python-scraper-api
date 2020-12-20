@@ -3,13 +3,14 @@ const path = require("path");
 const { spawn } = require("child_process");
 
 // Returns a promise that resolves with tile_directory
-module.exports.scrape = function(tile_query) {
+module.exports.scrape = function(tile_query, num_scrape) {
   return new Promise(function(resolve, reject) {
     console.log("Starting web scraping...\n");
 
     const scrapePyProcess = spawn("python", [
       "./python_scripts/scrape.py",
-      tile_query
+      tile_query,
+      num_scrape
     ]);
 
     scrapePyProcess.on("close", function(data) {
@@ -36,13 +37,13 @@ module.exports.scrape = function(tile_query) {
 };
 
 // Returns a promise that resolves with b64 string
-module.exports.makeMosaic = function(tileDirectory) {
+module.exports.makeMosaic = function(tileDirectory, width, height) {
   return new Promise(function(resolve, reject) {
     const mosaicPyProcess = spawn("python", [
       "./python_scripts/mosaic.py",
       "./images/target_image.jpg",
       "./images/" + tileDirectory,
-      "50 50",
+      width + " " + height,
       ""
     ]);
 

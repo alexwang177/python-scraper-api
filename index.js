@@ -48,6 +48,12 @@ workQueue.on("completed", (job, result) => {
 });
 
 // Start mosaic creation job route
+
+// Optional query string parameters:
+// num_scrape
+// width
+// height
+
 app.post(
   "/mosaic/:tile_query",
   upload.single("target_image"),
@@ -63,7 +69,19 @@ app.post(
       }
     );
 
-    let job = await workQueue.add({ tile_query: req.params.tile_query });
+    const tile_query = req.params.tile_query;
+    const num_scrape = req.query.num_scrape
+      ? parseInt(req.query.num_scrape)
+      : 30;
+    const width = req.query.width ? parseInt(req.query.width) : 50;
+    const height = req.query.height ? parseInt(req.query.height) : 50;
+
+    console.log("tile_query: " + tile_query);
+    console.log("num_scrape: " + num_scrape);
+    console.log("width: " + width);
+    console.log("height: " + height);
+
+    let job = await workQueue.add({ tile_query, num_scrape, width, height });
     res.json({ id: job.id });
   }
 );
