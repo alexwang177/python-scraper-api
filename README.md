@@ -14,6 +14,7 @@ Bull/Redis are utilized so that the scraping and image processing can be perform
 
 ![Image of Turtle](https://github.com/alexwang177/python-scraper-api/blob/master/readme_images/turtle.jpg)
 ![Image of Turtle Mosaic](https://github.com/alexwang177/python-scraper-api/blob/master/readme_images/turtle_mosaic.jpeg)
+![Image of Turtle Mosaic Fine](https://github.com/alexwang177/python-scraper-api/blob/master/readme_images/turtle_mosaic_fine.jpeg)
 
 ### Routes
 
