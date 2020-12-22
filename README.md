@@ -10,6 +10,10 @@ The Python scripts are run as Node.js child processes.
 
 Bull/Redis are utilized so that the scraping and image processing can be performed as a background job.
 
+## Example Mosaic
+
+(https://github.com/alexwang177/python-scraper-api/readme_images/turtle.jpg)
+
 ### Routes
 
 #### Post
