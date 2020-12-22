@@ -13,6 +13,7 @@ Bull/Redis are utilized so that the scraping and image processing can be perform
 ## Example Mosaic
 
 ![Image of Turtle](https://github.com/alexwang177/python-scraper-api/blob/master/readme_images/turtle.jpg)
+![Image of Turtle Mosaic](https://github.com/alexwang177/python-scraper-api/blob/master/readme_images/turtle_mosaic.jpeg)
 
 ### Routes
 
